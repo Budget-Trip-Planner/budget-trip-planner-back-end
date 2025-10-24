@@ -81,7 +81,7 @@ FROM (VALUES
 --   INSERT USERS "titi/toto"
 -- ===============================
 
-INSERT INTO UserS (
+INSERT INTO Users (
     last_name,
     first_name,
     username,

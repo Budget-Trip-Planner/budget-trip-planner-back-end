@@ -7,13 +7,22 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
+    @Query("SELECT new com.planner.app.dto.UserDTO(u.lastName, u.firstName, u.username, u.mail, u.phoneNumber, u.birthday, u.pp)" +
+            " FROM User u WHERE u.username = :username OR u.mail = :username")
+    Optional<UserDTO> findByUsernameOrEmailDTO(@Param("username") String username);
 
-    @Query("SELECT new com.planner.app.dto.UserDTO(u.lastName, u.firstName, u.username, u.mail, u.phoneNumber, u.birthday, u.pp) " +
-            "FROM User u WHERE u.username = :username")
-    UserDTO findByUsername(@Param("username") String username);
+    @Query("SELECT u FROM User u WHERE u.username = :username OR u.mail = :username")
+    Optional<User> findByUsernameOrEmail(@Param("username") String username);
+
+    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.username = :username")
+    boolean existsByUsername(@Param("username") String username);
+
+    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.mail = :mail")
+    boolean existsByMail(@Param("mail") String mail);
 
 }
