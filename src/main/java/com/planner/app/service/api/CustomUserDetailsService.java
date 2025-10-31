@@ -3,6 +3,7 @@ package com.planner.app.service.api;
 import com.planner.app.dao.UserRepository;
 import com.planner.app.entity.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,12 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 
-/**
- * CRITICAL: This class is REQUIRED for Spring Security authentication to work!
- * It loads user details from the database during the authentication process.
- */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -32,23 +30,3 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

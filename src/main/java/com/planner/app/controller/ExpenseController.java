@@ -1,14 +1,14 @@
 package com.planner.app.controller;
 
-import com.planner.app.service.TravelGroupService;
+import com.planner.app.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/travelgroups")
+@RequestMapping("/api/expenses")
 @RequiredArgsConstructor
-public class TravelGroupController {
-    private final TravelGroupService travelGroupService;
+public class ExpenseController {
+    private final ExpenseService expenseService;
 
 }

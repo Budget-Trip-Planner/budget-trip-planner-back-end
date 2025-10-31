@@ -4,6 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Credentials ###
+**/src/main/**/dev/
+**/src/main/**/prod/
+
 ### STS ###
 .apt_generated
 .classpath
@@ -31,3 +35,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Builds ###
+${project.build.directory}

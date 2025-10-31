@@ -1,12 +1,11 @@
 package com.planner.app.dao;
 
-import com.planner.app.entity.Friends;
+import com.planner.app.entity.Image;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.UUID;
-
 @Repository
-public interface FriendsRepository extends JpaRepository<Friends, UUID> {
+public interface ImageRepository extends JpaRepository<Image, Integer> {
+
 
 }
