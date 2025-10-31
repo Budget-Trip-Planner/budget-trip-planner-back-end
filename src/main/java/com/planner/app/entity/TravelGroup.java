@@ -1,54 +1,40 @@
 package com.planner.app.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import lombok.*;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-@Table(name = "travelgroup")
+@Table(name = "travel_groups")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TravelGroup {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false,  length = 100)
     private String name;
 
-    @Column(name = "member_ids", columnDefinition = "uuid[]", nullable = false)
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    private List<UUID> memberIds = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn (name = "voyage_id")
+    private Voyage voyage;
 
     @Column(name = "created_at", nullable = false)
-    private OffsetDateTime  createdAt;
+    private OffsetDateTime  createdAt =  OffsetDateTime.now();
 
-    public TravelGroup() {}
+    @ManyToMany(mappedBy = "travelGroups", fetch = FetchType.LAZY)
+    private Set<User> users = new HashSet<>();
 
-    public TravelGroup(String name, List<UUID> memberIds) {
-        this.name = name;
-        this.memberIds = memberIds;
-        this.createdAt = OffsetDateTime.now();
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = OffsetDateTime.now();
+        }
     }
-
-    public String getName() { return name; }
-
-    public void setName(String name) { this.name = name; }
-
-    public List<UUID> getMemberIds() { return memberIds; }
-
-    public void setMemberIds(List<UUID> memberIds) { this.memberIds = memberIds; }
-
-    public OffsetDateTime  getCreatedAt() { return createdAt; }
-
-    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
-
-    public UUID getId() { return id; }
-
-    public void setId(UUID id) { this.id = id; }
 
 }

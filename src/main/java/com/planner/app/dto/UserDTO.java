@@ -1,14 +1,16 @@
 package com.planner.app.dto;
 
-import lombok.Getter;
+import com.planner.app.entity.Image;
+import com.planner.app.entity.Location;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.Date;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserDTO {
     private String lastName;
     private String firstName;
@@ -16,15 +18,15 @@ public class UserDTO {
     private String mail;
     private String phoneNumber;
     private Date birthday;
-    private String pp;
+    private Image image;
+    private Location location;
 
-    public UserDTO(String lastName, String firstName, String username, String mail, String phoneNumber, Date birthday, String pp) {
+    public UserDTO(String lastName, String firstName, String username, String mail, String phoneNumber, Date birthday) {
         this.lastName = lastName;
         this.firstName = firstName;
         this.username = username;
         this.mail = mail;
         this.phoneNumber = phoneNumber;
         this.birthday = birthday;
-        this.pp = pp;
     }
 }

@@ -8,11 +8,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, UUID> {
-    @Query("SELECT new com.planner.app.dto.UserDTO(u.lastName, u.firstName, u.username, u.mail, u.phoneNumber, u.birthday, u.pp)" +
+public interface UserRepository extends JpaRepository<User, Integer> {
+    @Query("SELECT new com.planner.app.dto.UserDTO(u.lastName, u.firstName, u.username, u.mail, u.phoneNumber, u.birthday)" +
             " FROM User u WHERE u.username = :username OR u.mail = :username")
     Optional<UserDTO> findByUsernameOrEmailDTO(@Param("username") String username);
 

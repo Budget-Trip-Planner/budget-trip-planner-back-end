@@ -1,8 +1,13 @@
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
+.mvn
 !**/src/main/**/target/
 !**/src/test/**/target/
+
+### Credentials ###
+**/src/main/**/dev/
+**/src/main/**/prod/
 
 ### STS ###
 .apt_generated
@@ -31,3 +36,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Builds ###
+${project.build.directory}
