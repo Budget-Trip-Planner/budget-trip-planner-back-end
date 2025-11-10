@@ -60,6 +60,9 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "group_id")
     )
     private Set<TravelGroup> travelGroups = new HashSet<>();
+    
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Voyage> voyages = new HashSet<>();
 
     public User(String username, String password, String mail) {
         this.username = username;
