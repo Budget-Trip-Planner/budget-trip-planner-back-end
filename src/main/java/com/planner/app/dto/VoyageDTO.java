@@ -33,4 +33,35 @@ public class VoyageDTO {
         this.coverImage = coverImage;
         this.createdAt = OffsetDateTime.now();
     }
+
+    public void setObjectType(String objectType) { this.objectType = objectType; }
+
+    public void setObjectId(Integer objectId) { this.objectId = objectId; }
+
+    public void setDestination(String destination) { this.destination = destination; }
+
+    public void setBudgetTotal(BigDecimal budgetTotal) { this.budgetTotal = budgetTotal; }
+
+    public void setDurationDays(Integer durationDays) { this.durationDays = durationDays; }
+
+    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
+
+    public void setCoverImage(Image coverImage) { this.coverImage = coverImage; }
+
+    public String getObjectType() { return this.objectType; }
+
+    public Integer getObjectId() { return this.objectId; }
+
+    public String getDestination() { return this.destination; }
+
+    public BigDecimal getBudgetTotal() { return this.budgetTotal; }
+
+    public Integer getDurationDays() { return this.durationDays; }
+
+    public LocalDate getStartDate() { return this.startDate; }
+
+    public Image getCoverImage() { return this.coverImage; }
+
 }
