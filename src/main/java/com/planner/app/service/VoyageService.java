@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List; 
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -20,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class VoyageService {
+
     private final VoyageRepository voyageRepository;
     private final ExpenseRepository expenseRepository;
     private final ItineraryRepository itineraryRepository;
@@ -40,6 +42,9 @@ public class VoyageService {
     }
 
     @Transactional
+    public Voyage getVoyageById(Integer id) {
+        return voyageRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Voyage not found with id " + id));
     public List<Voyage> getAllVoyagesByBudgetAndByDestination(BigDecimal budget, String destination) {
         return voyageRepository.findByBudgetAndDestination(budget, destination);
     }
@@ -53,6 +58,14 @@ public class VoyageService {
     public Voyage createVoyage(Voyage voyage) {
         return voyageRepository.save(voyage);
     }
+
+    // Nouvelle methode pour recuperer les voyages d'un utilisateur
+    @Transactional
+    public List<Voyage> getVoyagesByUserId(Integer userId) {
+        return voyageRepository.findByUserId(userId);
+    }
+
+
 
     private ProposalDTO mapToProposalDTO(Voyage voyage, Expense expense, List<Itinerary> itineraries) {
         ProposalDTO proposalDTO = new ProposalDTO();

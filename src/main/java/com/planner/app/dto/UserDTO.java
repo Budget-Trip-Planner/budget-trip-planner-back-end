@@ -18,8 +18,8 @@ public class UserDTO {
     private String mail;
     private String phoneNumber;
     private Date birthday;
-    private Image image;
-    private Location location;
+    private ImageDTO image;
+    private LocationDTO location;
 
     public UserDTO(String lastName, String firstName, String username, String mail, String phoneNumber, Date birthday) {
         this.lastName = lastName;

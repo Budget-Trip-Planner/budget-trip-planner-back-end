@@ -1,5 +1,6 @@
 package com.planner.app.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,6 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -24,13 +26,13 @@ public class User {
     @Column(name = "first_name", length = 250)
     private String firstName;
 
-    @Column(name = "username", length = 250, nullable = false,unique = true)
+    @Column(name = "username", length = 250, nullable = false, unique = true)
     private String username;
 
     @Column(name = "password", length = 250, nullable = false)
     private String password;
 
-    @Column(name = "mail", length = 250, nullable = false,unique = true)
+    @Column(name = "mail", length = 250, nullable = false, unique = true)
     private String mail;
 
     @Column(name = "phone_numb", length = 20)
@@ -39,32 +41,39 @@ public class User {
     @Column(name = "birthday")
     private Date birthday;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "profile_image_id")
     private Image profile_image_id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "location_id")
     private Location location_id;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "friends",
-    joinColumns = @JoinColumn(name = "user_id"),
-    inverseJoinColumns = @JoinColumn(name = "friend_id")
+    @JoinTable(
+            name = "friends",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "friend_id")
     )
     private Set<User> friends = new HashSet<>();
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "group_memberships",
+    @JoinTable(
+            name = "group_memberships",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "group_id")
     )
     private Set<TravelGroup> travelGroups = new HashSet<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Voyage> voyages = new HashSet<>();
 
     public User(String username, String password, String mail) {
         this.username = username;
         this.password = password;
         this.mail = mail;
     }
-
 }

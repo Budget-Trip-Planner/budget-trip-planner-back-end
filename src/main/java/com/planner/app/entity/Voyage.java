@@ -43,11 +43,15 @@ public class Voyage {
     @JoinColumn(name = "cover_image_id")
     private Image coverImage;
 
+    // Ajout : lien vers le createur du voyage
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User creator;
+
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
             createdAt = OffsetDateTime.now();
         }
     }
-
 }
