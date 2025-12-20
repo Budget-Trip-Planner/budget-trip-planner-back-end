@@ -22,12 +22,16 @@ public class VoyageController {
 
     @GetMapping
     public ResponseEntity<List<VoyageDTO>> getAllVoyages() {
-        List<VoyageDTO> voyages = voyageService.getAllVoyages().stream().map(voyageMapper::toDTO).toList();
+        List<VoyageDTO> voyages = voyageService.getAllVoyages().stream()
+                .map(voyageMapper::toDTO)
+                .toList();
         return ResponseEntity.ok(voyages);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Voyage>> getVoyages(@RequestParam BigDecimal budget, @RequestParam String destination) {
+    public ResponseEntity<List<Voyage>> getVoyages(
+            @RequestParam BigDecimal budget,
+            @RequestParam String destination) {
         List<Voyage> voyages = voyageService.getAllVoyagesByBudgetAndByDestination(budget, destination);
         return ResponseEntity.ok(voyages);
     }
@@ -35,9 +39,9 @@ public class VoyageController {
     @GetMapping("/{id}")
     public ResponseEntity<ProposalDTO> getVoyage(@PathVariable Integer id) {
         try {
-            ProposalDTO proposal = voyageService.getVoyageById(id);
+            ProposalDTO proposal = voyageService.getVoyageWithDetails(id);
             return ResponseEntity.ok(proposal);
-        } catch ( RuntimeException e ) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
@@ -48,9 +52,8 @@ public class VoyageController {
             Voyage voyage = voyageMapper.toEntity(voyageDTO);
             Voyage savedVoyage = voyageService.createVoyage(voyage);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedVoyage);
-        } catch ( RuntimeException e ) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
-
 }

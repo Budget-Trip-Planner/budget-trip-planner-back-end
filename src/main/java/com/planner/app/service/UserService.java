@@ -3,9 +3,7 @@ package com.planner.app.service;
 import com.planner.app.dao.UserRepository;
 import com.planner.app.dao.LocationRepository;
 import com.planner.app.dao.ImageRepository;
-import com.planner.app.dto.UserDTO;
-import com.planner.app.dto.ImageDTO;
-import com.planner.app.dto.LocationDTO;
+import com.planner.app.dto.UserResponseDTO;
 import com.planner.app.entity.Image;
 import com.planner.app.entity.Location;
 import com.planner.app.entity.User;
@@ -13,6 +11,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 @Service
 @Transactional
@@ -24,69 +25,93 @@ public class UserService {
     private final LocationRepository locationRepository;
     private final ImageRepository imageRepository;
 
-    public UserDTO getUserProfile(Long userId) {
+    private static final SimpleDateFormat ISO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+
+    public UserResponseDTO getUserProfile(Long userId) {
         User user = userRepository.findById(userId.intValue())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        UserDTO dto = new UserDTO();
-        dto.setLastName(user.getLastName());
-        dto.setFirstName(user.getFirstName());
-        dto.setUsername(user.getUsername());
-        dto.setMail(user.getMail());
-        dto.setPhoneNumber(user.getPhoneNumber());
-        dto.setBirthday(user.getBirthday());
-
-        // Image -> ImageDTO
-        if (user.getProfile_image_id() != null) {
-            Image img = user.getProfile_image_id();
-            ImageDTO imgDto = new ImageDTO();
-            imgDto.setId(img.getId());
-            imgDto.setUrl(img.getUrl());
-            imgDto.setObjectType(img.getObjectType());
-            imgDto.setObjectId(img.getObjectId());
-            dto.setImage(imgDto);
-        }
-
-        // Location -> LocationDTO
-        if (user.getLocation_id() != null) {
-            Location loc = user.getLocation_id();
-            LocationDTO locDto = new LocationDTO();
-            locDto.setId(loc.getId());
-            locDto.setCity(loc.getCity());
-            locDto.setCountry(loc.getCountry());
-            dto.setLocation(locDto);
-        }
-
-        return dto;
+        return convertToResponseDTO(user);
     }
 
-
-    public UserDTO updateUserProfile(Long userId, UserDTO userDto) {
+    public UserResponseDTO updateUserProfile(Long userId, UserResponseDTO userDto) {
         User user = userRepository.findById(userId.intValue())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Mettre à jour les champs simples
         user.setLastName(userDto.getLastName());
         user.setFirstName(userDto.getFirstName());
         user.setUsername(userDto.getUsername());
         user.setMail(userDto.getMail());
         user.setPhoneNumber(userDto.getPhoneNumber());
-        user.setBirthday(userDto.getBirthday());
 
-        // Update location
-        if (userDto.getLocation() != null) {
-            Location loc = locationRepository.findById(userDto.getLocation().getId())
-                    .orElseThrow(() -> new RuntimeException("Location not found"));
-            user.setLocation_id(loc);
+        // Convertir la date string en Date
+        if (userDto.getBirthday() != null) {
+            try {
+                user.setBirthday(ISO_DATE_FORMAT.parse(userDto.getBirthday()));
+            } catch (ParseException e) {
+                log.warn("Invalid date format for birthday: {}", userDto.getBirthday());
+            }
         }
 
-        // Update image
-        if (userDto.getImage() != null) {
-            Image img = imageRepository.findById(userDto.getImage().getId())
-                    .orElseThrow(() -> new RuntimeException("Image not found"));
-            user.setProfile_image_id(img);
+        // Mettre à jour la location
+        if (userDto.getLocation() != null) {
+            Location location = user.getLocation_id();
+            if (location == null) {
+                location = new Location();
+            }
+            location.setCity(userDto.getLocation().getCity());
+            location.setCountry(userDto.getLocation().getCountry());
+            location = locationRepository.save(location);
+            user.setLocation_id(location);
+        }
+
+        // Mettre à jour l'image si une nouvelle URL est fournie
+        if (userDto.getImageUrl() != null && !userDto.getImageUrl().isEmpty()) {
+            Image image = user.getProfile_image_id();
+            if (image == null) {
+                image = new Image();
+                image.setObjectType("users");
+                image.setObjectId(user.getId());
+            }
+            image.setUrl(userDto.getImageUrl());
+            image = imageRepository.save(image);
+            user.setProfile_image_id(image);
         }
 
         userRepository.save(user);
-        return userDto;
+
+        return convertToResponseDTO(user);
+    }
+
+    /**
+     * Convertit une entité User vers le DTO simplifié pour le frontend
+     */
+    private UserResponseDTO convertToResponseDTO(User user) {
+        UserResponseDTO.UserResponseDTOBuilder builder = UserResponseDTO.builder()
+                .lastName(user.getLastName())
+                .firstName(user.getFirstName())
+                .username(user.getUsername())
+                .mail(user.getMail())
+                .phoneNumber(user.getPhoneNumber());
+
+        // Convertir la date en string ISO 8601
+        if (user.getBirthday() != null) {
+            builder.birthday(ISO_DATE_FORMAT.format(user.getBirthday()));
+        }
+
+        // Convertir la location
+        if (user.getLocation_id() != null) {
+            builder.location(UserResponseDTO.LocationSimpleDTO.builder()
+                    .city(user.getLocation_id().getCity())
+                    .country(user.getLocation_id().getCountry())
+                    .build());
+        }
+
+        // Convertir l'image en URL simple
+        if (user.getProfile_image_id() != null) {
+            builder.imageUrl(user.getProfile_image_id().getUrl());
+        }
+
+        return builder.build();
     }
 }

@@ -24,8 +24,13 @@ public class Voyage {
     @Column(name = "object_id", nullable = false)
     private Integer objectId;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String destination;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "departure_id")
+    private Location departure;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "destination_id", nullable = false)
+    private Location destination;
 
     @Column(name = "budget_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal budgetTotal;

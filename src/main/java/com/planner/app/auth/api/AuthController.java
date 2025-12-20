@@ -3,7 +3,6 @@ package com.planner.app.auth.api;
 import com.planner.app.auth.api.dto.LoginDTO;
 import com.planner.app.auth.api.dto.LoginResponseDTO;
 import com.planner.app.auth.api.dto.RegisterRequest;
-import com.planner.app.dto.UserDTO;
 import com.planner.app.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,13 +29,15 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserDTO> registerUser(@RequestBody RegisterRequest request) {
+    public ResponseEntity<LoginResponseDTO> registerUser(@RequestBody RegisterRequest request) {
         try {
-            UserDTO user = authService.register(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(user);
+            LoginResponseDTO response = authService.register(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(LoginResponseDTO.builder()
+                            .message(e.getMessage())
+                            .build());
         }
     }
-
 }

@@ -11,10 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
-    @Query("SELECT new com.planner.app.dto.UserDTO(u.lastName, u.firstName, u.username, u.mail, u.phoneNumber, u.birthday)" +
-            " FROM User u WHERE u.username = :username OR u.mail = :username")
-    Optional<UserDTO> findByUsernameOrEmailDTO(@Param("username") String username);
-
     @Query("SELECT u FROM User u WHERE u.username = :username OR u.mail = :username")
     Optional<User> findByUsernameOrEmail(@Param("username") String username);
 

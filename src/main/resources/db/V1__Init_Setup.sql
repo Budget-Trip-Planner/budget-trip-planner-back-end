@@ -38,7 +38,7 @@ CREATE TABLE Voyages (
                          id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                          object_type TEXT NOT NULL CHECK (object_type IN ('users', 'travel_groups')),
                          object_id INT NOT NULL,
-                         destination TEXT NOT NULL,
+                         destination_id INT NOT NULL REFERENCES Locations(id) ON DELETE RESTRICT,
                          budget_total NUMERIC(10, 2) NOT NULL,
                          duration_days INT NOT NULL CHECK (duration_days > 0),
                          start_date DATE,

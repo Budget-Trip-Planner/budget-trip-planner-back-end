@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .cors(c -> {}) // <— active CORS (source fournie plus bas)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // preflight
-                        .requestMatchers("/api/auth/**", "/api/users/**").permitAll() // login/register + création user
+                        .requestMatchers("/api/auth/**").permitAll() // login/register + création user
                         .anyRequest().authenticated()
                 )
 

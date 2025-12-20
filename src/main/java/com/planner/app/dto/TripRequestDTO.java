@@ -1,0 +1,19 @@
+package com.planner.app.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TripRequestDTO {
+    private Double budget;
+    private Integer duration;
+    private String departureCity;
+    private LocalDate startDate;
+    private List<String> preferences;
+}

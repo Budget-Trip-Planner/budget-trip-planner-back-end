@@ -3,6 +3,7 @@ package com.planner.app.dto;
 import com.planner.app.entity.Expense;
 import com.planner.app.entity.Image;
 import com.planner.app.entity.Itinerary;
+import com.planner.app.entity.Location;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,8 @@ public class ProposalDTO {
     private Integer id;
     private String objectType;
     private Integer objectId;
-    private String destination;
+    private Location departure;
+    private Location destination;
     private BigDecimal budgetTotal;
     private Integer durationDays;
     private LocalDate startDate;
@@ -27,5 +29,4 @@ public class ProposalDTO {
     private Image coverImage;
     private Expense expense;
     private List<Itinerary> itineraries;
-
 }
