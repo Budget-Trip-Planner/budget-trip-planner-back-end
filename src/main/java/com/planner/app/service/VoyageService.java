@@ -95,4 +95,41 @@ public class VoyageService {
         proposalDTO.setItineraries(itineraries);
         return proposalDTO;
     }
+
+    @Transactional
+    public Voyage saveProposal(ProposalDTO proposalDTO) {
+        // 1. Create and save Voyage
+        Voyage voyage = new Voyage();
+        voyage.setObjectType(proposalDTO.getObjectType() != null ? proposalDTO.getObjectType() : "voyages"); 
+        voyage.setObjectId(proposalDTO.getObjectId()); // Might be null or generated
+        voyage.setDeparture(proposalDTO.getDeparture());
+        voyage.setDestination(proposalDTO.getDestination());
+        voyage.setBudgetTotal(proposalDTO.getBudgetTotal());
+        voyage.setDurationDays(proposalDTO.getDurationDays());
+        voyage.setStartDate(proposalDTO.getStartDate());
+        voyage.setCoverImage(proposalDTO.getCoverImage());
+        
+        // Ensure locations are saved if transient (CascadeType might handle this, but checking mapper logic helps)
+        // Assuming entities passed in DTO are managed or cascade is set.
+        // If not, we might need to save locations first like in Mapper.
+        
+        Voyage savedVoyage = voyageRepository.save(voyage);
+
+        // 2. Save Expense if exists
+        if (proposalDTO.getExpense() != null) {
+            Expense expense = proposalDTO.getExpense();
+            expense.setVoyageId(savedVoyage.getId());
+            expenseRepository.save(expense);
+        }
+
+        // 3. Save Itineraries if exist
+        if (proposalDTO.getItineraries() != null && !proposalDTO.getItineraries().isEmpty()) {
+            for (Itinerary itinerary : proposalDTO.getItineraries()) {
+                itinerary.setVoyageId(savedVoyage.getId());
+                itineraryRepository.save(itinerary);
+            }
+        }
+
+        return savedVoyage;
+    }
 }

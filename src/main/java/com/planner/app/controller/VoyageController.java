@@ -56,4 +56,14 @@ public class VoyageController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
+
+    @PostMapping("/proposal")
+    public ResponseEntity<Voyage> saveProposal(@RequestBody ProposalDTO proposalDTO) {
+        try {
+            Voyage savedVoyage = voyageService.saveProposal(proposalDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedVoyage);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
 }
