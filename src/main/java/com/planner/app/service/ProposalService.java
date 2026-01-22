@@ -4,7 +4,7 @@ import com.planner.app.dao.VoyageRepository;
 import com.planner.app.dto.LocationDTO;
 import com.planner.app.dto.TripRequestDTO;
 import com.planner.app.dto.TripResponseDTO;
-import com.planner.app.entity.Location;
+import com.planner.app.entity.Locations;
 import com.planner.app.entity.Voyage;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +56,7 @@ public class ProposalService {
                 .build();
     }
 
-    private LocationDTO toLocationDTO(Location location) {
+    private LocationDTO toLocationDTO(Locations location) {
         if (location == null) {
             return null;
         }

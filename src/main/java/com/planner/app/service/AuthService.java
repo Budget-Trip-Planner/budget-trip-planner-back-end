@@ -4,10 +4,10 @@ import com.planner.app.auth.api.dto.LoginDTO;
 import com.planner.app.auth.api.dto.LoginResponseDTO;
 import com.planner.app.auth.api.dto.RegisterRequest;
 import com.planner.app.auth.jwt.JwtUtil;
-import com.planner.app.dao.LocationRepository;
+import com.planner.app.dao.LocationsRepository;
 import com.planner.app.dao.UserRepository;
 import com.planner.app.dto.UserResponseDTO;
-import com.planner.app.entity.Location;
+import com.planner.app.entity.Locations;
 import com.planner.app.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ import java.text.SimpleDateFormat;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final LocationRepository locationRepository;
+    private final LocationsRepository locationsRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
@@ -79,12 +79,12 @@ public class AuthService {
         }
 
         // Créer la location si city/country fournis
-        Location location = null;
+        Locations location = null;
         if (request.getCity() != null && request.getCountry() != null) {
-            location = new Location();
+            location = new Locations();
             location.setCity(request.getCity());
             location.setCountry(request.getCountry());
-            location = locationRepository.save(location);
+            location = locationsRepository.save(location);
         }
 
         User user = new User();

@@ -26,11 +26,11 @@ public class Voyage {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "departure_id")
-    private Location departure;
+    private Locations departure;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "destination_id", nullable = false)
-    private Location destination;
+    private Locations destination;
 
     @Column(name = "budget_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal budgetTotal;

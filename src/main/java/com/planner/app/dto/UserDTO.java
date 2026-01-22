@@ -1,7 +1,7 @@
 package com.planner.app.dto;
 
 import com.planner.app.entity.Image;
-import com.planner.app.entity.Location;
+import com.planner.app.entity.Locations;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
