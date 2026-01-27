@@ -26,17 +26,6 @@ public class VoyageController {
     private final VoyageService voyageService;
     private final VoyageMapper voyageMapper;
 
-    /**
-     * Get the current authenticated user's ID from the security context
-     */
-    private Integer getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof com.planner.app.service.api.CustomUserDetailsService.CustomUserPrincipal principal) {
-            return principal.getUserId();
-        }
-        return null;
-    }
-
     @GetMapping
     public ResponseEntity<List<VoyageDTO>> getAllVoyages() {
         List<VoyageDTO> voyages = voyageService.getAllVoyages().stream()
@@ -76,23 +65,4 @@ public class VoyageController {
         }
     }
 
-    @PostMapping("/proposal")
-    public ResponseEntity<?> saveProposal(@RequestBody ProposalDTO proposalDTO) {
-        try {
-            Integer userId = getCurrentUserId();
-            log.info("Received proposal: destination={}, budget={}, duration={}, userId={}",
-                    proposalDTO.getDestination() != null ? proposalDTO.getDestination().getCity() : "null",
-                    proposalDTO.getBudgetTotal(),
-                    proposalDTO.getDurationDays(),
-                    userId);
-
-            Voyage savedVoyage = voyageService.saveProposal(proposalDTO, userId);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedVoyage);
-        } catch (Exception e) {
-            log.error("Error saving proposal: {}", e.getMessage(), e);
-            // Return the error message in the response for debugging
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", e.getMessage(), "type", e.getClass().getSimpleName()));
-        }
-    }
 }
