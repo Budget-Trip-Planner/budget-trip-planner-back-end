@@ -1,11 +1,11 @@
 package com.planner.app.service;
 
 import com.planner.app.dao.UserRepository;
-import com.planner.app.dao.LocationRepository;
+import com.planner.app.dao.LocationsRepository;
 import com.planner.app.dao.ImageRepository;
 import com.planner.app.dto.UserResponseDTO;
 import com.planner.app.entity.Image;
-import com.planner.app.entity.Location;
+import com.planner.app.entity.Locations;
 import com.planner.app.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final LocationRepository locationRepository;
+    private final LocationsRepository locationsRepository;
     private final ImageRepository imageRepository;
 
     private static final SimpleDateFormat ISO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
@@ -55,13 +55,13 @@ public class UserService {
 
         // Mettre à jour la location
         if (userDto.getLocation() != null) {
-            Location location = user.getLocation_id();
+            Locations location = user.getLocation_id();
             if (location == null) {
-                location = new Location();
+                location = new Locations();
             }
             location.setCity(userDto.getLocation().getCity());
             location.setCountry(userDto.getLocation().getCountry());
-            location = locationRepository.save(location);
+            location = locationsRepository.save(location);
             user.setLocation_id(location);
         }
 

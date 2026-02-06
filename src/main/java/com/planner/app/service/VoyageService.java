@@ -2,10 +2,12 @@ package com.planner.app.service;
 
 import com.planner.app.dao.ExpenseRepository;
 import com.planner.app.dao.ItineraryRepository;
+import com.planner.app.dao.LocationsRepository;
 import com.planner.app.dao.VoyageRepository;
 import com.planner.app.dto.ProposalDTO;
 import com.planner.app.entity.Expense;
 import com.planner.app.entity.Itinerary;
+import com.planner.app.entity.Locations;
 import com.planner.app.entity.Voyage;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,11 +26,11 @@ public class VoyageService {
 
     private final VoyageRepository voyageRepository;
     private final ExpenseRepository expenseRepository;
-    
     private final ItineraryRepository itineraryRepository;
 
-    //Get voyage with full details (expense + itineraries) as ProposalDTO
-     
+    /**
+     * Get voyage with full details (expense + itineraries) as ProposalDTO
+     */
     @Transactional
     public ProposalDTO getVoyageWithDetails(Integer id) {
         Voyage voyage = voyageRepository.findById(id)
@@ -41,44 +45,50 @@ public class VoyageService {
         return mapToProposalDTO(voyage, expense, itineraries);
     }
 
-    //Get voyage entity by ID
-     
+    /**
+     * Get voyage entity by ID
+     */
     @Transactional
     public Voyage getVoyageById(Integer id) {
         return voyageRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Voyage not found with id: " + id));
     }
 
-    //Search voyages by budget and destination
-     
+    /**
+     * Search voyages by budget and destination
+     */
     @Transactional
     public List<Voyage> getAllVoyagesByBudgetAndByDestination(BigDecimal budget, String destination) {
         return voyageRepository.findByBudgetAndDestination(budget, destination);
     }
 
-    //Get all voyages
-     
+    /**
+     * Get all voyages
+     */
     @Transactional
     public List<Voyage> getAllVoyages() {
         return voyageRepository.findAll();
     }
 
-    //Create a new voyage
-     
+    /**
+     * Create a new voyage
+     */
     @Transactional
     public Voyage createVoyage(Voyage voyage) {
         return voyageRepository.save(voyage);
     }
 
-    // Get voyages by user ID
-     
+    /**
+     * Get voyages by user ID
+     */
     @Transactional
     public List<Voyage> getVoyagesByUserId(Integer userId) {
         return voyageRepository.findByUserId(userId);
     }
 
-    // Map Voyage entity to ProposalDTO
-     
+    /**
+     * Map Voyage entity to ProposalDTO
+     */
     private ProposalDTO mapToProposalDTO(Voyage voyage, Expense expense, List<Itinerary> itineraries) {
         ProposalDTO proposalDTO = new ProposalDTO();
         proposalDTO.setId(voyage.getId());

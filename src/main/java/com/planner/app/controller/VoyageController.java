@@ -6,16 +6,22 @@ import com.planner.app.entity.Voyage;
 import com.planner.app.mapper.VoyageMapper;
 import com.planner.app.service.VoyageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/voyages")
 @RequiredArgsConstructor
+@Slf4j
 public class VoyageController {
     private final VoyageService voyageService;
     private final VoyageMapper voyageMapper;
@@ -42,6 +48,7 @@ public class VoyageController {
             ProposalDTO proposal = voyageService.getVoyageWithDetails(id);
             return ResponseEntity.ok(proposal);
         } catch (RuntimeException e) {
+            log.error("Error getting voyage {}: {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
@@ -53,7 +60,9 @@ public class VoyageController {
             Voyage savedVoyage = voyageService.createVoyage(voyage);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedVoyage);
         } catch (RuntimeException e) {
+            log.error("Error creating voyage: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
+
 }

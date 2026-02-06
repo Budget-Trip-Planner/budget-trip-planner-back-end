@@ -1,6 +1,6 @@
 package com.planner.app.service;
 
-import com.planner.app.dao.LocationRepository;
+import com.planner.app.dao.LocationsRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Transactional
 public class LocationService {
-    private LocationRepository locationRepository;
+    private LocationsRepository locationsRepository;
 
 
 }

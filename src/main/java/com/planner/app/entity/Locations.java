@@ -8,7 +8,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Location {
+public class Locations {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -19,7 +19,7 @@ public class Location {
     @Column(name = "country", length = 100, nullable = false)
     private String country;
 
-    public Location(String city, String country) {
+    public Locations(String city, String country) {
         this.city = city;
         this.country = country;
     }

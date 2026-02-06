@@ -47,7 +47,7 @@ public class User {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "location_id")
-    private Location location_id;
+    private Locations location_id;
 
     @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)

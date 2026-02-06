@@ -16,4 +16,5 @@ public class TripRequestDTO {
     private String departureCity;
     private LocalDate startDate;
     private List<String> preferences;
+
 }
