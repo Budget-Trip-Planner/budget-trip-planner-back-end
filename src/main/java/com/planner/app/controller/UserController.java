@@ -1,7 +1,9 @@
 package com.planner.app.controller;
 
 import com.planner.app.dto.UserResponseDTO;
+import com.planner.app.dto.VoyageDTO;
 import com.planner.app.entity.Voyage;
+import com.planner.app.mapper.VoyageMapper;
 import com.planner.app.service.UserService;
 import com.planner.app.service.VoyageService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ public class UserController {
 
     private final UserService userService;
     private final VoyageService voyageService;
+    private final VoyageMapper voyageMapper;
 
     // PROFIL : GET
     @GetMapping("/{id}/profile")
@@ -35,7 +38,10 @@ public class UserController {
 
     // Récupérer les voyages d'un utilisateur
     @GetMapping("/{id}/proposals")
-    public ResponseEntity<List<Voyage>> getUserProposals(@PathVariable Integer id) {
-        return ResponseEntity.ok(voyageService.getVoyagesByUserId(id));
+    public ResponseEntity<List<VoyageDTO>> getUserProposals(@PathVariable Integer id) {
+        List<VoyageDTO> voyages = voyageService.getVoyagesByUserId(id).stream()
+                .map(voyageMapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(voyages);
     }
 }

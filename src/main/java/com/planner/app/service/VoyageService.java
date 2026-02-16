@@ -99,6 +99,7 @@ public class VoyageService {
         proposalDTO.setBudgetTotal(voyage.getBudgetTotal());
         proposalDTO.setDurationDays(voyage.getDurationDays());
         proposalDTO.setStartDate(voyage.getStartDate());
+        proposalDTO.setHotel(voyage.getHotel());
         proposalDTO.setCreatedAt(voyage.getCreatedAt());
         proposalDTO.setCoverImage(voyage.getCoverImage());
         proposalDTO.setExpense(expense);

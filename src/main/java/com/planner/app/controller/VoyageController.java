@@ -1,7 +1,9 @@
 package com.planner.app.controller;
 
+import com.planner.app.dao.UserRepository;
 import com.planner.app.dto.ProposalDTO;
 import com.planner.app.dto.VoyageDTO;
+import com.planner.app.entity.User;
 import com.planner.app.entity.Voyage;
 import com.planner.app.mapper.VoyageMapper;
 import com.planner.app.service.VoyageService;
@@ -25,6 +27,7 @@ import java.util.Map;
 public class VoyageController {
     private final VoyageService voyageService;
     private final VoyageMapper voyageMapper;
+    private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<List<VoyageDTO>> getAllVoyages() {
@@ -35,10 +38,12 @@ public class VoyageController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Voyage>> getVoyages(
+    public ResponseEntity<List<VoyageDTO>> getVoyages(
             @RequestParam BigDecimal budget,
             @RequestParam String destination) {
-        List<Voyage> voyages = voyageService.getAllVoyagesByBudgetAndByDestination(budget, destination);
+        List<VoyageDTO> voyages = voyageService.getAllVoyagesByBudgetAndByDestination(budget, destination).stream()
+                .map(voyageMapper::toDTO)
+                .toList();
         return ResponseEntity.ok(voyages);
     }
 
@@ -53,10 +58,23 @@ public class VoyageController {
         }
     }
 
+    private Integer getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof com.planner.app.service.api.CustomUserDetailsService.CustomUserPrincipal principal) {
+            return principal.getUserId();
+        }
+        return null;
+    }
+
     @PostMapping
     public ResponseEntity<Voyage> createVoyage(@RequestBody VoyageDTO voyageDTO) {
         try {
             Voyage voyage = voyageMapper.toEntity(voyageDTO);
+            Integer userId = getCurrentUserId();
+            if (userId != null) {
+                User creator = userRepository.findById(userId).orElse(null);
+                voyage.setCreator(creator);
+            }
             Voyage savedVoyage = voyageService.createVoyage(voyage);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedVoyage);
         } catch (RuntimeException e) {

@@ -41,6 +41,9 @@ public class Voyage {
     @Column(name = "start_date")
     private LocalDate startDate;
 
+    @Column(name = "hotel")
+    private String hotel;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt = OffsetDateTime.now();
 
@@ -48,7 +51,6 @@ public class Voyage {
     @JoinColumn(name = "cover_image_id")
     private Image coverImage;
 
-    // Ajout : lien vers le createur du voyage
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User creator;

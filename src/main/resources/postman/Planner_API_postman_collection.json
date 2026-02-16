@@ -1,0 +1,1828 @@
+{
+	"info": {
+		"_postman_id": "ed285cf6-86fc-4d0f-b165-0b5ed9d9e6a7",
+		"name": "Planner API Copy",
+		"description": "Complete API collection for testing Planner application with JWT authentication, voyage management, proposals (generation via Gemini AI and saving), expenses, itineraries, locations, images, and travel groups.\n\nEndpoint changes:\n- Proposal generation: POST /api/proposals/generate (uses GeminiService)\n- Save proposal: POST /api/proposals (creates voyage with expense and itineraries)\n- Voyage CRUD: /api/voyages endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45772495",
+		"_collection_link": "https://a-4307391.postman.co/workspace/a's-Workspace~e52731e5-8b71-40c7-8024-0c5e7c0fda4c/collection/45772495-ed285cf6-86fc-4d0f-b165-0b5ed9d9e6a7?action=share&source=collection_link&creator=45772495"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate unique username/email to avoid duplicates",
+									"var timestamp = Date.now();",
+									"pm.environment.set('test_username', 'testuser_' + timestamp);",
+									"pm.environment.set('test_email', 'testuser_' + timestamp + '@example.com');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response contains token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.expect(jsonData.token).to.be.a('string');",
+									"    ",
+									"    // Save token for auto-login",
+									"    pm.collectionVariables.set('jwt_token', jsonData.token);",
+									"});",
+									"",
+									"pm.test(\"Response contains userId\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('userId');",
+									"    pm.expect(jsonData.userId).to.be.a('number');",
+									"    pm.collectionVariables.set('user_id', jsonData.userId);",
+									"});",
+									"",
+									"pm.test(\"Response contains user data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('user');",
+									"    pm.expect(jsonData.user).to.have.property('username');",
+									"    pm.expect(jsonData.user).to.have.property('mail');",
+									"});",
+									"",
+									"pm.test(\"Password is not returned\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.user).to.not.have.property('password');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Test\",\n    \"lastName\": \"User\",\n    \"username\": \"{{test_username}}\",\n    \"email\": \"{{test_email}}\",\n    \"password\": \"SecurePass123!\",\n    \"birthday\": \"1990-01-15\",\n    \"city\": \"Paris\",\n    \"country\": \"France\"\n}\n"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						},
+						"description": "Register a new user account with unique username/email. Returns JWT token for auto-login after registration."
+					},
+					"response": []
+				},
+				{
+					"name": "Register User - Duplicate Username",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response contains error message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData.message).to.include('already exists');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Doe\",\n    \"username\": \"johndoe\",\n    \"email\": \"jane.doe@example.com\",\n    \"password\": \"SecurePass123!\",\n    \"birthday\": \"1992-05-20\",\n    \"city\": \"Lyon\",\n    \"country\": \"France\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						},
+						"description": "Test registration with an already existing username"
+					},
+					"response": []
+				},
+				{
+					"name": "Register User - Duplicate Email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response contains error message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData.message).to.include('already exists');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Doe\",\n    \"username\": \"janedoe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"SecurePass123!\",\n    \"birthday\": \"1992-05-20\",\n    \"city\": \"Lyon\",\n    \"country\": \"France\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						},
+						"description": "Test registration with an already existing email"
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains JWT token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.expect(jsonData.token).to.be.a('string');",
+									"    pm.expect(jsonData.token.length).to.be.above(20);",
+									"    ",
+									"    // Save token to collection variable",
+									"    pm.collectionVariables.set('jwt_token', jsonData.token);",
+									"});",
+									"",
+									"pm.test(\"Response contains userId\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('userId');",
+									"    pm.expect(jsonData.userId).to.be.a('number');",
+									"    pm.collectionVariables.set('user_id', jsonData.userId);",
+									"});",
+									"",
+									"pm.test(\"Response contains user data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('user');",
+									"    pm.expect(jsonData.user).to.have.property('username');",
+									"    pm.expect(jsonData.user).to.have.property('mail');",
+									"});",
+									"",
+									"pm.test(\"Response contains success message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData.message).to.equal('Login successful');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"johndoe\",\n    \"password\": \"SecurePass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						},
+						"description": "Login with username and password to receive JWT token. Use this first if user already exists."
+					},
+					"response": []
+				},
+				{
+					"name": "Login with Email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains JWT token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.environment.set('jwt_token', jsonData.token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"john.doe@example.com\",\n    \"password\": \"SecurePass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						},
+						"description": "Login using email address instead of username (supported by findByUsernameOrEmail)"
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Invalid Credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response contains error message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});",
+									"",
+									"pm.test(\"No token returned\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.token).to.be.oneOf([null, undefined]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"johndoe\",\n    \"password\": \"WrongPassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						},
+						"description": "Test login with invalid credentials"
+					},
+					"response": []
+				},
+				{
+					"name": "Login - User Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response contains error message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"nonexistentuser\",\n    \"password\": \"SomePassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						},
+						"description": "Test login with non-existent user"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for user registration and login"
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get User Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains user profile data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('firstName');",
+									"    pm.expect(jsonData).to.have.property('lastName');",
+									"    pm.expect(jsonData).to.have.property('username');",
+									"    pm.expect(jsonData).to.have.property('mail');",
+									"});",
+									"",
+									"pm.test(\"Location is present if set\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.location) {",
+									"        pm.expect(jsonData.location).to.have.property('city');",
+									"        pm.expect(jsonData.location).to.have.property('country');",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Password is not returned\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.not.have.property('password');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}",
+								"profile"
+							]
+						},
+						"description": "Get the profile of a user by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Profile - Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403, 404 or 500\", function () {",
+									"    // 403 if token is invalid/missing",
+									"    // 404 or 500 if user not found with valid token",
+									"    pm.expect(pm.response.code).to.be.oneOf([403, 404, 500]);",
+									"});",
+									"",
+									"pm.test(\"If authenticated, response indicates user not found\", function () {",
+									"    if (pm.response.code === 500) {",
+									"        // RuntimeException thrown by service",
+									"        pm.expect(pm.response.text()).to.include('not found');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/99999/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"99999",
+								"profile"
+							]
+						},
+						"description": "Test getting profile for non-existent user. Returns 403 if token invalid, 500 if user not found."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Profile - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 or 403\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}",
+								"profile"
+							]
+						},
+						"description": "Test accessing profile without authentication"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains updated data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('firstName');",
+									"    pm.expect(jsonData).to.have.property('lastName');",
+									"    pm.expect(jsonData.phoneNumber).to.equal('0612345678');",
+									"});",
+									"",
+									"pm.test(\"Location was updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.location) {",
+									"        pm.expect(jsonData.location.city).to.equal('Lyon');",
+									"        pm.expect(jsonData.location.country).to.equal('France');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"lastName\": \"Doe\",\n    \"firstName\": \"John\",\n    \"username\": \"johndoe\",\n    \"mail\": \"john.doe@example.com\",\n    \"phoneNumber\": \"0612345678\",\n    \"birthday\": \"1990-01-15\",\n    \"location\": {\n        \"city\": \"Lyon\",\n        \"country\": \"France\"\n    },\n    \"imageUrl\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}",
+								"profile"
+							]
+						},
+						"description": "Update user profile information"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Profile with Image",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Image URL was updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('imageUrl');",
+									"    pm.expect(jsonData.imageUrl).to.include('https://');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"lastName\": \"Doe\",\n    \"firstName\": \"John\",\n    \"username\": \"johndoe\",\n    \"mail\": \"john.doe@example.com\",\n    \"phoneNumber\": \"0612345678\",\n    \"birthday\": \"1990-01-15\",\n    \"location\": {\n        \"city\": \"Lyon\",\n        \"country\": \"France\"\n    },\n    \"imageUrl\": \"https://example.com/profile/johndoe.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}",
+								"profile"
+							]
+						},
+						"description": "Update user profile with a profile image URL"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Proposals (Voyages)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Each voyage has required fields\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    jsonData.forEach(function(voyage) {",
+									"        pm.expect(voyage).to.have.property('id');",
+									"        pm.expect(voyage).to.have.property('destination');",
+									"        pm.expect(voyage).to.have.property('budgetTotal');",
+									"        pm.expect(voyage).to.have.property('durationDays');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/proposals",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}",
+								"proposals"
+							]
+						},
+						"description": "Get all voyages/proposals for a specific user"
+					},
+					"response": []
+				}
+			],
+			"description": "User profile management endpoints"
+		},
+		{
+			"name": "Voyages",
+			"item": [
+				{
+					"name": "Get All Voyages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Voyages have VoyageDTO structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.length > 0) {",
+									"        var voyage = jsonData[0];",
+									"        pm.expect(voyage).to.have.property('id');",
+									"        pm.expect(voyage).to.have.property('objectType');",
+									"        pm.expect(voyage).to.have.property('departure');",
+									"        pm.expect(voyage).to.have.property('destination');",
+									"        pm.expect(voyage).to.have.property('budgetTotal');",
+									"        pm.expect(voyage).to.have.property('durationDays');",
+									"        ",
+									"        // Save first voyage ID for later tests",
+									"        pm.environment.set('voyage_id', voyage.id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/voyages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages"
+							]
+						},
+						"description": "Retrieve all voyages as VoyageDTO list"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Voyage",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response contains voyage data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('destination');",
+									"    pm.expect(jsonData).to.have.property('budgetTotal');",
+									"    pm.expect(jsonData).to.have.property('durationDays');",
+									"    pm.expect(jsonData).to.have.property('objectType');",
+									"    pm.expect(jsonData).to.have.property('objectId');",
+									"    ",
+									"    // Save voyage ID for later use",
+									"    pm.environment.set('voyage_id', jsonData.id);",
+									"});",
+									"",
+									"pm.test(\"Voyage has createdAt timestamp\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('createdAt');",
+									"});",
+									"",
+									"pm.test(\"Destination has LocationDTO structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.destination).to.have.property('id');",
+									"    pm.expect(jsonData.destination).to.have.property('city');",
+									"    pm.expect(jsonData.destination).to.have.property('country');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"objectType\": \"users\",\n    \"objectId\": {{user_id}},\n    \"departure\": {\n        \"city\": \"Paris\",\n        \"country\": \"France\"\n    },\n    \"destination\": {\n        \"city\": \"Tokyo\",\n        \"country\": \"Japan\"\n    },\n    \"budgetTotal\": 2500.00,\n    \"durationDays\": 14,\n    \"startDate\": \"2025-09-01\",\n    \"hotel\": \"Shinjuku Granbell Hotel:2-14-5 Kabukicho, Shinjuku, Tokyo, Japan\",\n    \"coverImage\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/voyages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages"
+							]
+						},
+						"description": "Create a new voyage with departure and destination locations"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Voyage with Existing Location IDs",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Voyage was created with existing locations\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData.departure).to.have.property('id');",
+									"    pm.expect(jsonData.destination).to.have.property('id');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"objectType\": \"users\",\n    \"objectId\": {{user_id}},\n    \"departure\": {\n        \"id\": 1\n    },\n    \"destination\": {\n        \"id\": 2\n    },\n    \"budgetTotal\": 1200.00,\n    \"durationDays\": 7,\n    \"startDate\": \"2025-10-15\",\n    \"hotel\": \"Hotel & Spa La Belle Juliette:92 Rue du Cherche-Midi, Paris, France\",\n    \"coverImage\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/voyages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages"
+							]
+						},
+						"description": "Create a voyage using existing location IDs from the database"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Voyage by ID (ProposalDTO)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains voyage data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('destination');",
+									"    pm.expect(jsonData).to.have.property('budgetTotal');",
+									"    pm.expect(jsonData).to.have.property('durationDays');",
+									"});",
+									"",
+									"pm.test(\"Response contains expense data (ProposalDTO)\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('expense');",
+									"    // Expense may be null if not yet created",
+									"    if (jsonData.expense !== null) {",
+									"        pm.expect(jsonData.expense).to.have.property('transportAmount');",
+									"        pm.expect(jsonData.expense).to.have.property('hotelAmount');",
+									"        pm.expect(jsonData.expense).to.have.property('restaurantAmount');",
+									"        pm.expect(jsonData.expense).to.have.property('activitiesAmount');",
+									"        pm.expect(jsonData.expense).to.have.property('totalAmount');",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Response contains itineraries array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('itineraries');",
+									"    // Can be null or array",
+									"    if (jsonData.itineraries !== null) {",
+									"        pm.expect(jsonData.itineraries).to.be.an('array');",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Itineraries are ordered by dayNumber (if exists)\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.itineraries && jsonData.itineraries.length > 1) {",
+									"        for (let i = 0; i < jsonData.itineraries.length - 1; i++) {",
+									"            pm.expect(jsonData.itineraries[i].dayNumber)",
+									"                .to.be.at.most(jsonData.itineraries[i + 1].dayNumber);",
+									"        }",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/voyages/{{voyage_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages",
+								"{{voyage_id}}"
+							]
+						},
+						"description": "Retrieve a specific voyage with its expenses and itineraries (ProposalDTO)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Voyage - Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/voyages/99999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages",
+								"99999"
+							]
+						},
+						"description": "Test error handling for non-existent voyage"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Voyages by Budget and Destination",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"All voyages match search criteria\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    jsonData.forEach(function(voyage) {",
+									"        pm.expect(parseFloat(voyage.budgetTotal)).to.be.at.most(3000);",
+									"        pm.expect(voyage.destination.city).to.equal('Tokyo');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/voyages/search?budget=3000&destination=Tokyo",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages",
+								"search"
+							],
+							"query": [
+								{
+									"key": "budget",
+									"value": "3000"
+								},
+								{
+									"key": "destination",
+									"value": "Tokyo"
+								}
+							]
+						},
+						"description": "Search voyages by maximum budget and destination city"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Voyage - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 or 403\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"objectType\": \"users\",\n    \"objectId\": 1,\n    \"departure\": {\n        \"city\": \"Paris\",\n        \"country\": \"France\"\n    },\n    \"destination\": {\n        \"city\": \"London\",\n        \"country\": \"UK\"\n    },\n    \"budgetTotal\": 1500.00,\n    \"durationDays\": 5,\n    \"startDate\": \"2025-10-01\",\n    \"coverImage\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/voyages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages"
+							]
+						},
+						"description": "Test creating voyage without authentication token"
+					},
+					"response": []
+				}
+			],
+			"description": "Voyage management endpoints - CRUD operations for voyages"
+		},
+		{
+			"name": "Proposals",
+			"item": [
+				{
+					"name": "Generate Proposals",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// AI generation can take longer, allow up to 30 seconds",
+									"pm.test(\"Response time is less than 30000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(30000);",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON (array or object)\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.satisfy(function(data) {",
+									"        return Array.isArray(data) || (typeof data === 'object' && data !== null);",
+									"    });",
+									"});",
+									"",
+									"pm.test(\"Proposals have correct structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var proposals = jsonData.proposals || (Array.isArray(jsonData) ? jsonData : [jsonData]);",
+									"    if (proposals.length > 0) {",
+									"        var proposal = proposals[0];",
+									"        pm.expect(proposal).to.have.property('destination');",
+									"        pm.expect(proposal).to.have.property('budgetTotal');",
+									"        pm.expect(proposal).to.have.property('durationDays');",
+									"        pm.expect(proposal).to.have.property('startDate');",
+									"        pm.expect(proposal).to.have.property('hotel');",
+									"        pm.expect(proposal).to.have.property('expense');",
+									"        pm.expect(proposal).to.have.property('itineraries');",
+									"    }",
+									"});",
+									"",
+									"// AI-generated proposals should be reasonably close to budget (within 20% margin)",
+									"pm.test(\"Proposals are reasonably within budget\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var proposals = jsonData.proposals || (Array.isArray(jsonData) ? jsonData : [jsonData]);",
+									"    var maxBudget = 2000 * 1.2; // 20% margin",
+									"    proposals.forEach(function(proposal) {",
+									"        if (proposal.budgetTotal !== undefined) {",
+									"            pm.expect(proposal.budgetTotal).to.be.at.most(maxBudget);",
+									"        }",
+									"    });",
+									"});",
+									"",
+									"// AI-generated proposals should be reasonably close to duration (within 2 days margin)",
+									"pm.test(\"Proposals are reasonably within duration\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var proposals = jsonData.proposals || (Array.isArray(jsonData) ? jsonData : [jsonData]);",
+									"    var maxDuration = 10 + 2; // 2 days margin",
+									"    proposals.forEach(function(proposal) {",
+									"        if (proposal.durationDays !== undefined) {",
+									"            pm.expect(proposal.durationDays).to.be.at.most(maxDuration);",
+									"        }",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"budget\": 2000.0,\n    \"duration\": 10,\n    \"departureCity\": \"Paris\",\n    \"startDate\": \"2025-08-01\",\n    \"preferences\": [\"beach\", \"culture\", \"food\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/proposals/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"proposals",
+								"generate"
+							]
+						},
+						"description": "Generate trip proposals using Gemini AI based on budget, duration, departure city, and preferences (POST /api/proposals/generate)"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Proposals - No Departure City",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// AI generation can take longer, allow up to 30 seconds",
+									"pm.test(\"Response time is less than 30000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(30000);",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON (array or object)\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.satisfy(function(data) {",
+									"        return Array.isArray(data) || (typeof data === 'object' && data !== null);",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"budget\": 1500.0,\n    \"duration\": 7,\n    \"departureCity\": null,\n    \"startDate\": \"2025-09-15\",\n    \"preferences\": [\"adventure\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/proposals/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"proposals",
+								"generate"
+							]
+						},
+						"description": "Generate proposals without specifying a departure city (optional parameter)"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Proposals - Minimal Request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// AI generation can take longer, allow up to 30 seconds",
+									"pm.test(\"Response time is less than 30000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(30000);",
+									"});",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON (array or object)\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.satisfy(function(data) {",
+									"        return Array.isArray(data) || (typeof data === 'object' && data !== null);",
+									"    });",
+									"});",
+									"",
+									"pm.test(\"StartDate is present in response\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var proposals = jsonData.proposals || (Array.isArray(jsonData) ? jsonData : [jsonData]);",
+									"    if (proposals.length > 0) {",
+									"        pm.expect(proposals[0]).to.have.property('startDate');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"budget\": 1000.0,\n    \"duration\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/proposals/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"proposals",
+								"generate"
+							]
+						},
+						"description": "Generate proposals with only required fields (budget and duration)"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Proposals - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 or 403\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"budget\": 2000.0,\n    \"duration\": 10,\n    \"departureCity\": \"Paris\",\n    \"startDate\": \"2025-08-01\",\n    \"preferences\": [\"beach\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/proposals/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"proposals",
+								"generate"
+							]
+						},
+						"description": "Test generating proposals without authentication"
+					},
+					"response": []
+				},
+				{
+					"name": "Save Proposal (Create Voyage with Details)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response contains voyage data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('destination');",
+									"    pm.expect(jsonData).to.have.property('budgetTotal');",
+									"    pm.expect(jsonData).to.have.property('durationDays');",
+									"    ",
+									"    // Save the created voyage ID",
+									"    pm.collectionVariables.set('voyage_id', jsonData.id);",
+									"});",
+									"",
+									"pm.test(\"Voyage has correct budget\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(parseFloat(jsonData.budgetTotal)).to.equal(850);",
+									"});",
+									"",
+									"pm.test(\"Voyage has correct duration\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.durationDays).to.equal(5);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"objectType\": \"proposal\",\n    \"destination\": {\n        \"city\": \"Rome\",\n        \"country\": \"Italy\"\n    },\n    \"departure\": {\n        \"city\": \"Paris\",\n        \"country\": \"France\"\n    },\n    \"budgetTotal\": 850,\n    \"durationDays\": 5,\n    \"startDate\": \"2025-04-15\",\n    \"hotel\": \"Hotel Roma Centro:Via del Corso 25, Rome, Italy\",\n    \"expense\": {\n        \"transportAmount\": 212.5,\n        \"hotelAmount\": 212.5,\n        \"restaurantAmount\": 212.5,\n        \"activitiesAmount\": 212.5,\n        \"currency\": \"EUR\"\n    },\n    \"itineraries\": [\n        {\n            \"dayNumber\": 1,\n            \"activity\": \"Arrivee et installation a Rome\"\n        },\n        {\n            \"dayNumber\": 1,\n            \"activity\": \"Experience Culture\"\n        },\n        {\n            \"dayNumber\": 1,\n            \"activity\": \"Soiree gastronomique\"\n        },\n        {\n            \"dayNumber\": 2,\n            \"activity\": \"Decouverte du quartier\"\n        },\n        {\n            \"dayNumber\": 2,\n            \"activity\": \"Experience Gastronomie\"\n        },\n        {\n            \"dayNumber\": 2,\n            \"activity\": \"Soiree gastronomique\"\n        },\n        {\n            \"dayNumber\": 3,\n            \"activity\": \"Visite du Colisee\"\n        },\n        {\n            \"dayNumber\": 3,\n            \"activity\": \"Forum Romain\"\n        },\n        {\n            \"dayNumber\": 4,\n            \"activity\": \"Vatican et Chapelle Sixtine\"\n        },\n        {\n            \"dayNumber\": 4,\n            \"activity\": \"Place Saint-Pierre\"\n        },\n        {\n            \"dayNumber\": 5,\n            \"activity\": \"Shopping et souvenirs\"\n        },\n        {\n            \"dayNumber\": 5,\n            \"activity\": \"Depart\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/proposals",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"proposals"
+							]
+						},
+						"description": "Save a complete proposal with voyage details, expenses breakdown, and daily itinerary (multiple activities per day). Creates voyage, expense, and itinerary records. NOTE: Requires backend to handle grouping multiple activities per day. (POST /api/proposals)"
+					},
+					"response": []
+				},
+				{
+					"name": "Save Proposal - Minimal (No Expense/Itinerary)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response contains voyage data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('destination');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"objectType\": \"users\",\n    \"objectId\": {{user_id}},\n    \"departure\": {\n        \"city\": \"Lyon\",\n        \"country\": \"France\"\n    },\n    \"destination\": {\n        \"city\": \"Rome\",\n        \"country\": \"Italy\"\n    },\n    \"budgetTotal\": 1200.00,\n    \"durationDays\": 5,\n    \"startDate\": \"2025-09-01\",\n    \"hotel\": \"Hotel Trastevere:Via della Lungaretta 10, Rome, Italy\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/proposals",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"proposals"
+							]
+						},
+						"description": "Save a proposal with only voyage data (no expense or itinerary). Tests optional fields handling. (POST /api/proposals)"
+					},
+					"response": []
+				},
+				{
+					"name": "Save Proposal - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 or 403\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"objectType\": \"users\",\n    \"objectId\": 1,\n    \"destination\": {\n        \"city\": \"Rome\",\n        \"country\": \"Italy\"\n    },\n    \"budgetTotal\": 1200.00,\n    \"durationDays\": 5,\n    \"startDate\": \"2025-09-01\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/proposals",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"proposals"
+							]
+						},
+						"description": "Test saving proposal without authentication"
+					},
+					"response": []
+				}
+			],
+			"description": "Trip proposal generation and saving endpoints"
+		},
+		{
+			"name": "Security Tests",
+			"item": [
+				{
+					"name": "Access Protected Route - No Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 or 403\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/voyages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages"
+							]
+						},
+						"description": "Test accessing a protected route without a JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Access Protected Route - Invalid Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 or 403\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer invalid.token.here"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/voyages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages"
+							]
+						},
+						"description": "Test accessing a protected route with an invalid JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Access Protected Route - Expired Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 or 403\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImlzcyI6InBsYW5uZXItYXBwIiwiaWF0IjoxNjAwMDAwMDAwLCJleHAiOjE2MDAwMDAwMDF9.expired_signature"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/voyages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages"
+							]
+						},
+						"description": "Test accessing a protected route with an expired JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "CORS Preflight Request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 204\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"});",
+									"",
+									"pm.test(\"CORS headers are present\", function () {",
+									"    pm.response.to.have.header('Access-Control-Allow-Origin');",
+									"    pm.response.to.have.header('Access-Control-Allow-Methods');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "OPTIONS",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "http://localhost:4200"
+							},
+							{
+								"key": "Access-Control-Request-Method",
+								"value": "POST"
+							},
+							{
+								"key": "Access-Control-Request-Headers",
+								"value": "Authorization,Content-Type"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/voyages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"voyages"
+							]
+						},
+						"description": "Test CORS preflight request for frontend at localhost:4200"
+					},
+					"response": []
+				}
+			],
+			"description": "Tests for JWT authentication and security"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"console.log('Request to: ' + pm.request.url);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script - skip time check for AI generation endpoints",
+					"if (!pm.request.url.toString().includes('/proposals/generate')) {",
+					"    pm.test(\"Response time is less than 2000ms\", function () {",
+					"        pm.expect(pm.response.responseTime).to.be.below(2000);",
+					"    });",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "jwt_token",
+			"value": ""
+		},
+		{
+			"key": "user_id",
+			"value": "1"
+		},
+		{
+			"key": "voyage_id",
+			"value": "1"
+		}
+	]
+}

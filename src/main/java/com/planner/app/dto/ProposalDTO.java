@@ -25,6 +25,7 @@ public class ProposalDTO {
     private BigDecimal budgetTotal;
     private Integer durationDays;
     private LocalDate startDate;
+    private String hotel;
     private OffsetDateTime createdAt;
     private Image coverImage;
     private Expense expense;

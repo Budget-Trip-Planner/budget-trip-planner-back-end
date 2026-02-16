@@ -3,11 +3,13 @@ package com.planner.app.service;
 import com.planner.app.dao.ExpenseRepository;
 import com.planner.app.dao.ItineraryRepository;
 import com.planner.app.dao.LocationsRepository;
+import com.planner.app.dao.UserRepository;
 import com.planner.app.dao.VoyageRepository;
 import com.planner.app.dto.ProposalDTO;
 import com.planner.app.entity.Expense;
 import com.planner.app.entity.Itinerary;
 import com.planner.app.entity.Locations;
+import com.planner.app.entity.User;
 import com.planner.app.entity.Voyage;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class ProposalService {
 
     private final LocationsRepository locationRepository;
+    private final UserRepository userRepository;
     private final ExpenseRepository expenseRepository;
     private final ItineraryRepository itineraryRepository;
     private final VoyageRepository voyageRepository;
@@ -66,7 +69,14 @@ public class ProposalService {
         voyage.setBudgetTotal(proposalDTO.getBudgetTotal());
         voyage.setDurationDays(proposalDTO.getDurationDays());
         voyage.setStartDate(proposalDTO.getStartDate());
+        voyage.setHotel(proposalDTO.getHotel());
         voyage.setCoverImage(proposalDTO.getCoverImage());
+
+        // Set the creator (user_id) on the voyage
+        if (userId != null) {
+            User creator = userRepository.findById(userId).orElse(null);
+            voyage.setCreator(creator);
+        }
 
         Voyage savedVoyage = voyageRepository.save(voyage);
         log.info("Saved voyage with ID: {}", savedVoyage.getId());

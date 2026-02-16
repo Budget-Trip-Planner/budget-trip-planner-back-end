@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface VoyageRepository extends JpaRepository<Voyage, Integer> {
 
-    @Query(value = "SELECT * FROM voyages WHERE object_type = 'users' AND object_id = :userId", nativeQuery = true)
+    @Query(value = "SELECT * FROM voyages WHERE user_id = :userId OR (object_type = 'users' AND object_id = :userId)", nativeQuery = true)
     List<Voyage> findByUserId(@Param("userId") Integer userId);
 
     @Query("SELECT v FROM Voyage v WHERE v.budgetTotal <= :budget AND v.destination.city = :destination")

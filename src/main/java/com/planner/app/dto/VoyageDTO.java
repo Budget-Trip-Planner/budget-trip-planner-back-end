@@ -21,11 +21,12 @@ public class VoyageDTO {
     private BigDecimal budgetTotal;
     private Integer durationDays;
     private LocalDate startDate;
+    private String hotel;
     private OffsetDateTime createdAt;
     private Image coverImage;
 
     public VoyageDTO(String objectType, Integer objectId, LocationDTO departure, LocationDTO destination,
-                     BigDecimal budgetTotal, Integer durationDays, LocalDate startDate, Image coverImage) {
+                     BigDecimal budgetTotal, Integer durationDays, LocalDate startDate, String hotel, Image coverImage) {
         this.objectType = objectType;
         this.objectId = objectId;
         this.departure = departure;
@@ -33,6 +34,7 @@ public class VoyageDTO {
         this.budgetTotal = budgetTotal;
         this.durationDays = durationDays;
         this.startDate = startDate;
+        this.hotel = hotel;
         this.coverImage = coverImage;
         this.createdAt = OffsetDateTime.now();
     }
