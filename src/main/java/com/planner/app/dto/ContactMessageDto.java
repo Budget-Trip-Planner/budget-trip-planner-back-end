@@ -1,8 +1,13 @@
 package com.planner.app.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class ContactMessageDto {
 
+    @NotBlank
     private String subject;
+
+    @NotBlank
     private String message;
 
     public ContactMessageDto() {}
@@ -22,5 +27,4 @@ public class ContactMessageDto {
     public void setMessage(String message) {
         this.message = message;
     }
-
 }
