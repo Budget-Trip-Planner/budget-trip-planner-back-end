@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "ed285cf6-86fc-4d0f-b165-0b5ed9d9e6a7",
 		"name": "Planner API Copy",
-		"description": "Complete API collection for testing Planner application with JWT authentication, voyage management, proposals (generation via Gemini AI and saving), expenses, itineraries, locations, images, and travel groups.\n\nEndpoint changes:\n- Proposal generation: POST /api/proposals/generate (uses GeminiService)\n- Save proposal: POST /api/proposals (creates voyage with expense and itineraries)\n- Voyage CRUD: /api/voyages endpoints",
+		"description": "Complete API collection for testing Planner application with JWT authentication, voyage management, proposals (generation via Gemini AI and saving), expenses, itineraries, flights, locations, images, and travel groups.\n\nEndpoint changes:\n- Proposal generation: POST /api/proposals/generate (uses GeminiService)\n- Save proposal: POST /api/proposals (creates voyage with expense, itineraries and flights)\n- Voyage CRUD: /api/voyages endpoints\n- Flights: GET/POST /api/voyages/{id}/flights, GET/DELETE /api/flights/{id}",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "45772495",
 		"_collection_link": "https://a-4307391.postman.co/workspace/a's-Workspace~e52731e5-8b71-40c7-8024-0c5e7c0fda4c/collection/45772495-ed285cf6-86fc-4d0f-b165-0b5ed9d9e6a7?action=share&source=collection_link&creator=45772495"
@@ -1597,6 +1597,292 @@
 			"description": "Trip proposal generation and saving endpoints"
 		},
 		{
+			"name": "Flights",
+			"item": [
+				{
+					"name": "Get Voyage Flights",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Each flight has required fields\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    jsonData.forEach(function(flight) {",
+									"        pm.expect(flight).to.have.property('id');",
+									"        pm.expect(flight).to.have.property('direction');",
+									"        pm.expect(flight).to.have.property('airline');",
+									"        pm.expect(flight).to.have.property('flightNumber');",
+									"        pm.expect(flight.direction).to.be.oneOf(['outbound', 'return']);",
+									"    });",
+									"    if (jsonData.length > 0) {",
+									"        pm.collectionVariables.set('flight_id', jsonData[0].id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/voyages/{{voyage_id}}/flights",
+							"host": ["{{base_url}}"],
+							"path": ["api", "voyages", "{{voyage_id}}", "flights"]
+						},
+						"description": "Get all flights (outbound and return) for a specific voyage"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Flight by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Flight has correct structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('direction');",
+									"    pm.expect(jsonData.direction).to.be.oneOf(['outbound', 'return']);",
+									"    pm.expect(jsonData).to.have.property('airline');",
+									"    pm.expect(jsonData).to.have.property('flightNumber');",
+									"    pm.expect(jsonData).to.have.property('departureAirportCode');",
+									"    pm.expect(jsonData).to.have.property('arrivalAirportCode');",
+									"    pm.expect(jsonData).to.have.property('departureDateTime');",
+									"    pm.expect(jsonData).to.have.property('arrivalDateTime');",
+									"    pm.expect(jsonData).to.have.property('totalPrice');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/flights/{{flight_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "flights", "{{flight_id}}"]
+						},
+						"description": "Get a specific flight by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Flight - Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/flights/99999",
+							"host": ["{{base_url}}"],
+							"path": ["api", "flights", "99999"]
+						},
+						"description": "Test error handling for non-existent flight"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Flight to Voyage",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response contains flight data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('direction');",
+									"    pm.expect(jsonData).to.have.property('airline');",
+									"    pm.expect(jsonData.direction).to.equal('outbound');",
+									"    pm.collectionVariables.set('flight_id', jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"direction\": \"outbound\",\n    \"airline\": \"Air France\",\n    \"flightNumber\": \"AF1130\",\n    \"departureAirportCode\": \"CDG\",\n    \"departureAirportName\": \"Aeroport Paris-Charles-de-Gaulle\",\n    \"arrivalAirportCode\": \"FCO\",\n    \"arrivalAirportName\": \"Aeroport international Leonardo da Vinci\",\n    \"departureDateTime\": \"2025-04-15T09:30:00\",\n    \"arrivalDateTime\": \"2025-04-15T11:35:00\",\n    \"duration\": \"2h05\",\n    \"class\": \"economy\",\n    \"stops\": 0,\n    \"totalPrice\": 212.50,\n    \"currency\": \"EUR\",\n    \"passengers\": 1,\n    \"bookingClass\": \"economy\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/voyages/{{voyage_id}}/flights",
+							"host": ["{{base_url}}"],
+							"path": ["api", "voyages", "{{voyage_id}}", "flights"]
+						},
+						"description": "Add a flight leg (outbound or return) to an existing voyage. The UNIQUE constraint on (voyage_id, direction) prevents duplicate legs."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Flight - Duplicate Direction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400 or 409\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 409]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"direction\": \"outbound\",\n    \"airline\": \"easyJet\",\n    \"flightNumber\": \"U21234\",\n    \"departureAirportCode\": \"CDG\",\n    \"departureAirportName\": \"Aeroport Paris-Charles-de-Gaulle\",\n    \"arrivalAirportCode\": \"FCO\",\n    \"arrivalAirportName\": \"Aeroport international Leonardo da Vinci\",\n    \"departureDateTime\": \"2025-04-15T14:00:00\",\n    \"arrivalDateTime\": \"2025-04-15T16:05:00\",\n    \"duration\": \"2h05\",\n    \"class\": \"economy\",\n    \"stops\": 0,\n    \"totalPrice\": 99.00,\n    \"currency\": \"EUR\",\n    \"passengers\": 1,\n    \"bookingClass\": \"economy\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/voyages/{{voyage_id}}/flights",
+							"host": ["{{base_url}}"],
+							"path": ["api", "voyages", "{{voyage_id}}", "flights"]
+						},
+						"description": "Test that adding a second outbound flight to the same voyage returns an error (UNIQUE constraint on voyage_id + direction)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Flight",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204 or 200\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/flights/{{flight_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "flights", "{{flight_id}}"]
+						},
+						"description": "Delete a flight by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Flight - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 or 403\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/flights/{{flight_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "flights", "{{flight_id}}"]
+						},
+						"description": "Test deleting a flight without authentication"
+					},
+					"response": []
+				}
+			],
+			"description": "Flight management endpoints for voyage legs (outbound and return)"
+		},
+		{
 			"name": "Security Tests",
 			"item": [
 				{
@@ -1822,6 +2108,10 @@
 		},
 		{
 			"key": "voyage_id",
+			"value": "1"
+		},
+		{
+			"key": "flight_id",
 			"value": "1"
 		}
 	]

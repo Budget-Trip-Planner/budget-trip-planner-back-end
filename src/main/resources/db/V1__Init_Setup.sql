@@ -91,3 +91,27 @@ CREATE TABLE Itinerary (
 
 ALTER TABLE Itinerary
     ADD CONSTRAINT unique_voyage_day UNIQUE (voyage_id, day_number);
+
+CREATE TABLE Flights (
+    id                     INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    voyage_id              INT          NOT NULL REFERENCES Voyages(id) ON DELETE CASCADE,
+    direction              VARCHAR(10)  NOT NULL CHECK (direction IN ('outbound', 'return')),
+    airline                VARCHAR(100) NOT NULL,
+    flight_number          VARCHAR(20)  NOT NULL,
+    departure_airport_code VARCHAR(10)  NOT NULL,
+    departure_airport_name VARCHAR(200),
+    arrival_airport_code   VARCHAR(10)  NOT NULL,
+    arrival_airport_name   VARCHAR(200),
+    departure_datetime     TIMESTAMP    NOT NULL,
+    arrival_datetime       TIMESTAMP    NOT NULL,
+    duration               VARCHAR(20),
+    class                  VARCHAR(50)  NOT NULL DEFAULT 'economy',
+    stops                  INT          NOT NULL DEFAULT 0 CHECK (stops >= 0),
+    total_price            NUMERIC(10,2),
+    currency               VARCHAR(3)   NOT NULL DEFAULT 'EUR',
+    passengers             INT          NOT NULL DEFAULT 1 CHECK (passengers > 0),
+    booking_class          VARCHAR(50)  NOT NULL DEFAULT 'economy',
+    created_at             TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+    UNIQUE (voyage_id, direction)
+);

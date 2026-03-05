@@ -154,6 +154,104 @@ INSERT INTO Itinerary (id, voyage_id, day_number, activity, created_at) VALUES
                                                                             (19, 37, 4, 'Vatican et Chapelle Sixtine | Place Saint-Pierre', '2026-01-22 12:21:08.67428+01'),
                                                                             (20, 37, 5, 'Shopping et souvenirs | Depart', '2026-01-22 12:21:08.675279+01');
 
+-- Flights
+-- Voyage 1  : Lyon (LYS) → Berlin (BER), 3 j, 12-14 nov 2025, transport = 150 €
+-- Voyage 2  : Lyon (LYS) → Madrid (MAD), 3 j, 20-22 nov 2025, transport = 180 €
+-- Voyage 8  : Paris (CDG) → Lisbonne (LIS), 3 j, 15-17 jan 2026, transport = 250 €
+-- Voyage 9  : Lyon (LYS) → Madrid (MAD), 5 j, 15-19 sep 2025
+-- Voyage 10 : Marseille (MRS) → Rome (FCO), 4 j, 1-4 oct 2025
+-- Voyage 11 : Paris (CDG) → Tokyo (NRT), 14 j, 1-14 sep 2025
+-- Voyage 37 : Paris (CDG) → Rome (FCO), 5 j, 15-19 avr 2025, transport = 212.50 €
+INSERT INTO Flights (id, voyage_id, direction, airline, flight_number,
+                     departure_airport_code, departure_airport_name,
+                     arrival_airport_code,   arrival_airport_name,
+                     departure_datetime, arrival_datetime, duration,
+                     class, stops, total_price, currency, passengers, booking_class)
+OVERRIDING SYSTEM VALUE VALUES
+-- Voyage 1 — Lyon → Berlin
+(1,  1, 'outbound', 'Transavia', 'TO6581',
+ 'LYS', 'Aéroport Lyon-Saint-Exupéry',
+ 'BER', 'Aéroport de Berlin Brandenburg',
+ '2025-11-12 07:10:00', '2025-11-12 09:25:00', '2h15',
+ 'economy', 0, 150.00, 'EUR', 1, 'economy'),
+(2,  1, 'return',   'Transavia', 'TO6582',
+ 'BER', 'Aéroport de Berlin Brandenburg',
+ 'LYS', 'Aéroport Lyon-Saint-Exupéry',
+ '2025-11-14 19:40:00', '2025-11-14 21:55:00', '2h15',
+ 'economy', 0, 150.00, 'EUR', 1, 'economy'),
+
+-- Voyage 2 — Lyon → Madrid
+(3,  2, 'outbound', 'Vueling', 'VY8862',
+ 'LYS', 'Aéroport Lyon-Saint-Exupéry',
+ 'MAD', 'Aéroport Adolfo Suárez Madrid-Barajas',
+ '2025-11-20 06:45:00', '2025-11-20 09:10:00', '2h25',
+ 'economy', 0, 180.00, 'EUR', 1, 'economy'),
+(4,  2, 'return',   'Vueling', 'VY8863',
+ 'MAD', 'Aéroport Adolfo Suárez Madrid-Barajas',
+ 'LYS', 'Aéroport Lyon-Saint-Exupéry',
+ '2025-11-22 20:15:00', '2025-11-22 22:40:00', '2h25',
+ 'economy', 0, 180.00, 'EUR', 1, 'economy'),
+
+-- Voyage 8 — Paris → Lisbonne
+(5,  8, 'outbound', 'TAP Air Portugal', 'TP443',
+ 'CDG', 'Aéroport Paris-Charles-de-Gaulle',
+ 'LIS', 'Aéroport Humberto Delgado de Lisbonne',
+ '2026-01-15 08:20:00', '2026-01-15 10:45:00', '2h25',
+ 'economy', 0, 250.00, 'EUR', 1, 'economy'),
+(6,  8, 'return',   'TAP Air Portugal', 'TP444',
+ 'LIS', 'Aéroport Humberto Delgado de Lisbonne',
+ 'CDG', 'Aéroport Paris-Charles-de-Gaulle',
+ '2026-01-17 18:30:00', '2026-01-17 21:00:00', '2h30',
+ 'economy', 0, 250.00, 'EUR', 1, 'economy'),
+
+-- Voyage 9 — Lyon → Madrid
+(7,  9, 'outbound', 'Vueling', 'VY8860',
+ 'LYS', 'Aéroport Lyon-Saint-Exupéry',
+ 'MAD', 'Aéroport Adolfo Suárez Madrid-Barajas',
+ '2025-09-15 07:00:00', '2025-09-15 09:20:00', '2h20',
+ 'economy', 0, 200.00, 'EUR', 1, 'economy'),
+(8,  9, 'return',   'Vueling', 'VY8861',
+ 'MAD', 'Aéroport Adolfo Suárez Madrid-Barajas',
+ 'LYS', 'Aéroport Lyon-Saint-Exupéry',
+ '2025-09-19 21:05:00', '2025-09-19 23:25:00', '2h20',
+ 'economy', 0, 200.00, 'EUR', 1, 'economy'),
+
+-- Voyage 10 — Marseille → Rome
+(9,  10, 'outbound', 'easyJet', 'U27941',
+ 'MRS', 'Aéroport Marseille Provence',
+ 'FCO', 'Aéroport international Leonardo da Vinci',
+ '2025-10-01 06:55:00', '2025-10-01 08:50:00', '1h55',
+ 'economy', 0, 160.00, 'EUR', 1, 'economy'),
+(10, 10, 'return',   'easyJet', 'U27942',
+ 'FCO', 'Aéroport international Leonardo da Vinci',
+ 'MRS', 'Aéroport Marseille Provence',
+ '2025-10-04 19:10:00', '2025-10-04 21:05:00', '1h55',
+ 'economy', 0, 160.00, 'EUR', 1, 'economy'),
+
+-- Voyage 11 — Paris → Tokyo
+(11, 11, 'outbound', 'Air France', 'AF276',
+ 'CDG', 'Aéroport Paris-Charles-de-Gaulle',
+ 'NRT', 'Aéroport international de Tokyo-Narita',
+ '2025-09-01 11:15:00', '2025-09-02 07:05:00', '11h50',
+ 'economy', 0, 900.00, 'EUR', 1, 'economy'),
+(12, 11, 'return',   'Air France', 'AF275',
+ 'NRT', 'Aéroport international de Tokyo-Narita',
+ 'CDG', 'Aéroport Paris-Charles-de-Gaulle',
+ '2025-09-14 12:40:00', '2025-09-14 18:00:00', '13h20',
+ 'economy', 0, 900.00, 'EUR', 1, 'economy'),
+
+-- Voyage 37 — Paris → Rome
+(13, 37, 'outbound', 'Air France', 'AF1130',
+ 'CDG', 'Aéroport Paris-Charles-de-Gaulle',
+ 'FCO', 'Aéroport international Leonardo da Vinci',
+ '2025-04-15 09:30:00', '2025-04-15 11:35:00', '2h05',
+ 'economy', 0, 212.50, 'EUR', 1, 'economy'),
+(14, 37, 'return',   'Air France', 'AF1131',
+ 'FCO', 'Aéroport international Leonardo da Vinci',
+ 'CDG', 'Aéroport Paris-Charles-de-Gaulle',
+ '2025-04-19 17:50:00', '2025-04-19 19:55:00', '2h05',
+ 'economy', 0, 212.50, 'EUR', 1, 'economy');
+
 -- ============================================================
 -- RESET SEQUENCES
 -- ============================================================
@@ -165,3 +263,4 @@ SELECT setval('voyages_id_seq', (SELECT MAX(id) FROM Voyages));
 SELECT setval('travel_groups_id_seq', (SELECT MAX(id) FROM Travel_groups));
 SELECT setval('expenses_id_seq', (SELECT MAX(id) FROM Expenses));
 SELECT setval('itinerary_id_seq', (SELECT MAX(id) FROM Itinerary));
+SELECT setval('flights_id_seq',   (SELECT MAX(id) FROM Flights));
