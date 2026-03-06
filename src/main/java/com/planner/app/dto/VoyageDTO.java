@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -22,6 +23,7 @@ public class VoyageDTO {
     private Integer durationDays;
     private LocalDate startDate;
     private String hotel;
+    private List<String> tips;
     private OffsetDateTime createdAt;
     private Image coverImage;
 

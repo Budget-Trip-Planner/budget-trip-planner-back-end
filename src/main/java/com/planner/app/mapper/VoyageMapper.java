@@ -29,6 +29,7 @@ public class VoyageMapper {
         dto.setDurationDays(voyage.getDurationDays());
         dto.setStartDate(voyage.getStartDate());
         dto.setHotel(voyage.getHotel());
+        dto.setTips(voyage.getTips());
         dto.setCreatedAt(voyage.getCreatedAt());
         dto.setCoverImage(voyage.getCoverImage());
         return dto;
@@ -48,6 +49,7 @@ public class VoyageMapper {
         voyage.setDurationDays(dto.getDurationDays());
         voyage.setStartDate(dto.getStartDate());
         voyage.setHotel(dto.getHotel());
+        voyage.setTips(dto.getTips());
         voyage.setCoverImage(dto.getCoverImage());
         return voyage;
     }

@@ -47,6 +47,7 @@ CREATE TABLE Voyages (
                          duration_days INT NOT NULL CHECK (duration_days > 0),
                          start_date DATE,
                          hotel TEXT,
+                         tips TEXT,
                          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                          cover_image_id INT REFERENCES Images(id) ON DELETE SET NULL,
                          user_id INT REFERENCES Users(id),

@@ -8,6 +8,7 @@ target/
 ### Credentials ###
 **/src/main/**/dev/
 **/src/main/**/prod/
+**/*.properties
 
 ### STS ###
 .apt_generated

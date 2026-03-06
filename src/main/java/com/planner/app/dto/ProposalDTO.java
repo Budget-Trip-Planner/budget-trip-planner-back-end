@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 @Data
 @NoArgsConstructor
@@ -30,4 +31,6 @@ public class ProposalDTO {
     private Image coverImage;
     private Expense expense;
     private List<Itinerary> itineraries;
+    private ProposalFlightsDTO flights;
+    private List<String> tips;
 }

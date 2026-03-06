@@ -1,11 +1,13 @@
 package com.planner.app.entity;
 
+import com.planner.app.converter.StringListConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "voyages")
@@ -43,6 +45,10 @@ public class Voyage {
 
     @Column(name = "hotel")
     private String hotel;
+
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "tips", columnDefinition = "TEXT")
+    private List<String> tips;
 
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt = OffsetDateTime.now();

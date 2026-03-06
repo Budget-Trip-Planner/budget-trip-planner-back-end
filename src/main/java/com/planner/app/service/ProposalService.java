@@ -1,12 +1,16 @@
 package com.planner.app.service;
 
 import com.planner.app.dao.ExpenseRepository;
+import com.planner.app.dao.FlightRepository;
 import com.planner.app.dao.ItineraryRepository;
 import com.planner.app.dao.LocationsRepository;
 import com.planner.app.dao.UserRepository;
 import com.planner.app.dao.VoyageRepository;
+import com.planner.app.dto.GeminiFlightInfoDTO;
 import com.planner.app.dto.ProposalDTO;
+import com.planner.app.dto.ProposalFlightsDTO;
 import com.planner.app.entity.Expense;
+import com.planner.app.entity.Flight;
 import com.planner.app.entity.Itinerary;
 import com.planner.app.entity.Locations;
 import com.planner.app.entity.User;
@@ -30,6 +34,7 @@ public class ProposalService {
     private final ExpenseRepository expenseRepository;
     private final ItineraryRepository itineraryRepository;
     private final VoyageRepository voyageRepository;
+    private final FlightRepository flightRepository;
 
     @Transactional
     public Voyage saveProposal(ProposalDTO proposalDTO, Integer userId) {
@@ -70,6 +75,7 @@ public class ProposalService {
         voyage.setDurationDays(proposalDTO.getDurationDays());
         voyage.setStartDate(proposalDTO.getStartDate());
         voyage.setHotel(proposalDTO.getHotel());
+        voyage.setTips(proposalDTO.getTips());
         voyage.setCoverImage(proposalDTO.getCoverImage());
 
         // Set the creator (user_id) on the voyage
@@ -110,7 +116,52 @@ public class ProposalService {
             log.info("Saved {} itinerary days for voyage ID: {}", activitiesByDay.size(), savedVoyage.getId());
         }
 
+        // 5. Save Flights if present
+        ProposalFlightsDTO flightsDTO = proposalDTO.getFlights();
+        if (flightsDTO != null) {
+            if (flightsDTO.getOutbound() != null) {
+                flightRepository.save(buildFlight(savedVoyage, "outbound", flightsDTO.getOutbound(),
+                        flightsDTO.getTotalPrice(), flightsDTO.getCurrency(),
+                        flightsDTO.getPassengers(), flightsDTO.getBookingClass()));
+                log.info("Saved outbound flight for voyage ID: {}", savedVoyage.getId());
+            }
+            if (flightsDTO.getReturnFlight() != null) {
+                flightRepository.save(buildFlight(savedVoyage, "return", flightsDTO.getReturnFlight(),
+                        null, flightsDTO.getCurrency(),
+                        flightsDTO.getPassengers(), flightsDTO.getBookingClass()));
+                log.info("Saved return flight for voyage ID: {}", savedVoyage.getId());
+            }
+        }
+
         return savedVoyage;
+    }
+
+    private Flight buildFlight(Voyage voyage, String direction, GeminiFlightInfoDTO info,
+                               java.math.BigDecimal totalPrice, String currency,
+                               Integer passengers, String bookingClass) {
+        Flight flight = new Flight();
+        flight.setVoyage(voyage);
+        flight.setDirection(direction);
+        flight.setAirline(info.getAirline());
+        flight.setFlightNumber(info.getFlightNumber());
+        if (info.getDepartureAirport() != null) {
+            flight.setDepartureAirportCode(info.getDepartureAirport().getCode());
+            flight.setDepartureAirportName(info.getDepartureAirport().getName());
+        }
+        if (info.getArrivalAirport() != null) {
+            flight.setArrivalAirportCode(info.getArrivalAirport().getCode());
+            flight.setArrivalAirportName(info.getArrivalAirport().getName());
+        }
+        flight.setDepartureDateTime(info.getDepartureDateTime());
+        flight.setArrivalDateTime(info.getArrivalDateTime());
+        flight.setDuration(info.getDuration());
+        if (info.getFlightClass() != null) flight.setFlightClass(info.getFlightClass());
+        if (info.getStops() != null) flight.setStops(info.getStops());
+        if (totalPrice != null) flight.setTotalPrice(totalPrice);
+        if (currency != null) flight.setCurrency(currency);
+        if (passengers != null) flight.setPassengers(passengers);
+        if (bookingClass != null) flight.setBookingClass(bookingClass);
+        return flight;
     }
 
     /**
