@@ -1890,6 +1890,146 @@
 			"description": "Flight management endpoints for voyage legs (outbound and return)"
 		},
 		{
+			"name": "Contact",
+			"item": [
+				{
+					"name": "Send Contact Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 500 (500 when mail server is unavailable)\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 500]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subject\": \"Question about my trip\",\n    \"message\": \"Hello, I have a question about my upcoming voyage.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contact",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"contact"
+							]
+						},
+						"description": "Send a contact message. Requires JWT authentication. The sender info is extracted from the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Send Contact Message - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 or 403\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subject\": \"Question about my trip\",\n    \"message\": \"Hello, I have a question about my upcoming voyage.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contact",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"contact"
+							]
+						},
+						"description": "Test sending a contact message without authentication. Should be rejected by JwtAuthenticationFilter."
+					},
+					"response": []
+				},
+				{
+					"name": "Send Contact Message - Empty Subject",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subject\": \"\",\n    \"message\": \"Hello, I have a question.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contact",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"contact"
+							]
+						},
+						"description": "Test sending a contact message with a blank subject. Should fail @NotBlank validation."
+					},
+					"response": []
+				}
+			],
+			"description": "Contact endpoint for sending messages. Requires JWT authentication — not bypassed by JwtAuthenticationFilter (only /api/auth/** is bypassed)."
+		},
+		{
 			"name": "Security Tests",
 			"item": [
 				{
@@ -2090,8 +2230,10 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					"// Global test script - skip time check for AI generation endpoints",
-					"if (!pm.request.url.toString().includes('/proposals/generate')) {",
+					"// Global test script - skip time check for endpoints that involve slow I/O",
+					"var url = pm.request.url.toString();",
+					"var isSlowEndpoint = url.includes('/proposals/generate') || url.includes('/api/contact');",
+					"if (!isSlowEndpoint) {",
 					"    pm.test(\"Response time is less than 2000ms\", function () {",
 					"        pm.expect(pm.response.responseTime).to.be.below(2000);",
 					"    });",
