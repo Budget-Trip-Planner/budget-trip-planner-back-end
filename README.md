@@ -1,11 +1,7 @@
 # Budget Trip Planner — Back-end (API)
 
 API REST du projet **Budget Trip Planner**, une application web de planification de
-voyage selon budget, préférences et contraintes. Construite avec **Spring Boot**.
-Projet de groupe — ESIEE Paris (E5, 2025/2026).
-
-> Vue d'ensemble du projet : https://github.com/Budget-Trip-Planner
-> Portfolio : https://afouanee.dev/projects/budget-trip-planner
+voyage selon budget, préférences et contraintes. Construite avec **Spring Boot**. Projet académique — ESIEE Paris (E5, 2025/2026).
 
 ---
 
@@ -61,9 +57,3 @@ docker run -p 8080:8080 btp-back
 ```
 
 L'API démarre par défaut sur `http://localhost:8080`.
-
----
-
-## Équipe
-
-Projet de groupe — ESIEE Paris (E5, 2025/2026).
